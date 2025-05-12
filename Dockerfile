@@ -1,16 +1,16 @@
-FROM node:18
+FROM mcr.microsoft.com/playwright:focal
 
-# Crear y usar directorio de trabajo
+# Crear directorio de trabajo
 WORKDIR /app
 
 # Copiar archivos
 COPY . .
 
-# Instalar dependencias
-RUN npm install && npx playwright install --with-deps
+# Instalar dependencias de Node.js
+RUN npm install
 
-# Exponer el puerto de Express
+# Exponer puerto
 EXPOSE 3000
 
-# Comando para iniciar la API
+# Iniciar el servidor
 CMD ["node", "api.js"]
