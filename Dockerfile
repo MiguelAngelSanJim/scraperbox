@@ -2,10 +2,10 @@ FROM mcr.microsoft.com/playwright:v1.42.1-focal
 
 WORKDIR /app
 
-COPY . .
+COPY package*.json ./
+RUN npm install
 
-RUN npm install \
-  && npx playwright install --with-deps
+COPY . .
 
 EXPOSE 3000
 
