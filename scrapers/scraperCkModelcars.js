@@ -10,7 +10,7 @@ async function obtenerPrecioMedioCKModelcars(query) {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
     });
 
-    await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+    await page.goto(url, { waitUntil: "load", timeout: 90000 });
 
     const sinResultados = await page.$("h2.first");
     if (sinResultados) {
