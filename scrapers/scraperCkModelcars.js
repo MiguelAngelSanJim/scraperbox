@@ -6,9 +6,12 @@ async function obtenerPrecioMedioCKModelcars(query) {
 
   try {
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "domcontentloaded" });
+    await page.setExtraHTTPHeaders({
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+    });
 
-    // Comprobar si aparece el mensaje "No se ha detectado ningún producto"
+    await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+
     const sinResultados = await page.$("h2.first");
     if (sinResultados) {
       const texto = await sinResultados.textContent();
@@ -18,12 +21,10 @@ async function obtenerPrecioMedioCKModelcars(query) {
       }
     }
 
-    // Esperar a que haya precios visibles
     await page.waitForSelector("div.div_liste_punkt_preis.rabatt", { timeout: 10000 });
 
     const precios = await page.$$eval("div.div_liste_punkt_preis.rabatt", divs =>
-      divs
-        .map(div => parseFloat(div.childNodes[0].textContent.replace("€", "").replace(",", ".").trim()))
+      divs.map(div => parseFloat(div.childNodes[0].textContent.replace("€", "").replace(",", ".").trim()))
         .filter(p => !isNaN(p))
     );
 
@@ -34,6 +35,7 @@ async function obtenerPrecioMedioCKModelcars(query) {
     }
 
     const media = precios.reduce((a, b) => a + b, 0) / precios.length;
+
     return {
       media: Number(media.toFixed(2)),
       detalles: precios,

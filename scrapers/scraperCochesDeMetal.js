@@ -6,9 +6,12 @@ async function obtenerPrecioMedioCochesDeMetal(query) {
 
   try {
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "domcontentloaded" });
+    await page.setExtraHTTPHeaders({
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+    });
 
-    // Comprobar si aparece el mensaje "There are no products."
+    await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+
     const sinResultados = await page.$("div.alert.alert-warning strong");
     if (sinResultados) {
       const texto = await sinResultados.textContent();
@@ -18,12 +21,10 @@ async function obtenerPrecioMedioCochesDeMetal(query) {
       }
     }
 
-    // Esperar a que haya precios visibles
     await page.waitForSelector("span.product-price font", { timeout: 10000 });
 
     const precios = await page.$$eval("span.product-price font", spans =>
-      spans
-        .map(span => parseFloat(span.textContent.replace("€", "").replace(",", ".").trim()))
+      spans.map(span => parseFloat(span.textContent.replace("€", "").replace(",", ".").trim()))
         .filter(p => !isNaN(p))
     );
 
@@ -34,6 +35,7 @@ async function obtenerPrecioMedioCochesDeMetal(query) {
     }
 
     const media = precios.reduce((a, b) => a + b, 0) / precios.length;
+
     return {
       media: Number(media.toFixed(2)),
       detalles: precios,

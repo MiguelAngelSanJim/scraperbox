@@ -6,25 +6,26 @@ async function obtenerPrecioMedioLego(query) {
 
   try {
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.setExtraHTTPHeaders({
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+    });
 
-    // Obtener todos los productos con precio
-    const productos = await page.$$eval("li[data-test='product-leaf']", items => {
-      return items.map(el => {
+    await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+
+    const productos = await page.$$eval("li[data-test='product-leaf']", items =>
+      items.map(el => {
         const titulo = el.querySelector("[data-test='product-title']")?.textContent?.toLowerCase() || "";
         const precioRaw = el.querySelector("[data-test='product-leaf-price']")?.textContent || "";
         const precio = parseFloat(precioRaw.replace("€", "").replace(",", ".").trim());
         return { titulo, precio };
-      }).filter(p => !isNaN(p.precio) && p.precio > 5);
-    });
+      }).filter(p => !isNaN(p.precio) && p.precio > 5)
+    );
 
-    // Filtrar productos cuyo título contenga todas las palabras clave de la búsqueda
     const relevantes = productos.filter(p =>
       query.toLowerCase().split(" ").every(palabra => p.titulo.includes(palabra))
     );
 
     const precios = relevantes.map(p => p.precio);
-
     if (precios.length === 0) {
       return { media: null, detalles: [], mensaje: "No se encontraron precios relevantes." };
     }
