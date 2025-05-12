@@ -1,53 +1,46 @@
 const { chromium } = require("playwright");
 
 async function obtenerPrecioMedioLego(query) {
-    const url = `https://www.lego.com/es-es/search?q=${encodeURIComponent(query)}`;
-    const browser = await chromium.launch({ headless: true });
+  const url = `https://www.lego.com/es-es/search?q=${encodeURIComponent(query)}`;
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+
+  try {
     const page = await browser.newPage();
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 
-    try {
-        await page.goto(url, { waitUntil: "networkidle" });
+    const productos = await page.$$eval("li[data-test='product-leaf']", items => {
+      return items.map(el => {
+        const titulo = el.querySelector("[data-test='product-title']")?.textContent?.toLowerCase() || "";
+        const precioRaw = el.querySelector("[data-test='product-leaf-price']")?.textContent || "";
+        const precio = parseFloat(precioRaw.replace("€", "").replace(",", ".").trim());
+        return { titulo, precio };
+      }).filter(p => !isNaN(p.precio) && p.precio > 5);
+    });
 
-        // Esperamos explícitamente a un precio visible
-        await page.waitForSelector("span[data-test='product-leaf-price']", { timeout: 15000 });
+    const relevantes = productos.filter(p =>
+      query.toLowerCase().split(" ").every(palabra => p.titulo.includes(palabra))
+    );
 
-        const productos = await page.$$eval("li[data-test='product-item']", items =>
-            items.map(item => {
-                const tituloEl = item.querySelector("h3[data-test='product-leaf-title-row'], h3, h2");
-                const precioEl = item.querySelector("span[data-test='product-leaf-price']");
-                const titulo = tituloEl ? tituloEl.textContent.toLowerCase().trim() : "";
-                const precioTexto = precioEl ? precioEl.textContent.replace("€", "").replace(",", ".").trim() : "";
-                const precio = parseFloat(precioTexto);
-                return { titulo, precio };
-            }).filter(p => p.titulo && !isNaN(p.precio))
-        );
-
-        console.log("Productos LEGO sin filtrar:", productos);
-
-
-        const palabras = query.toLowerCase().split(" ").filter(p => p.length > 2);
-        const relevantes = productos.filter(p =>
-            palabras.filter(palabra => p.titulo.includes(palabra)).length >= 2
-        );
-
-        if (relevantes.length === 0) {
-            return { media: null, detalles: [], mensaje: "No se encontraron precios relevantes." };
-        }
-
-        const precios = relevantes.map(p => p.precio);
-        const media = precios.reduce((a, b) => a + b, 0) / precios.length;
-
-        return {
-            media: Number(media.toFixed(2)),
-            detalles: precios,
-        };
-
-    } catch (error) {
-        console.error("Error en scraper LEGO:", error.message);
-        return { error: true, mensaje: "Falló la extracción de datos." };
-    } finally {
-        await browser.close();
+    const precios = relevantes.map(p => p.precio);
+    if (precios.length === 0) {
+      return { media: null, detalles: [], mensaje: "No se encontraron precios relevantes." };
     }
+
+    const suma = precios.reduce((a, b) => a + b, 0);
+    return {
+      media: Number((suma / precios.length).toFixed(2)),
+      detalles: precios
+    };
+
+  } catch (error) {
+    console.error("Error en scraper LEGO:", error.message);
+    return { media: null, detalles: [], mensaje: error.message };
+  } finally {
+    await browser.close();
+  }
 }
 
 module.exports = obtenerPrecioMedioLego;
