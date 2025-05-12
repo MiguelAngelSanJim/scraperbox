@@ -1,16 +1,16 @@
-FROM mcr.microsoft.com/playwright:focal
+FROM mcr.microsoft.com/playwright:v1.52.0-focal
 
-# Crear directorio de trabajo
+# Crear y usar directorio de trabajo
 WORKDIR /app
 
 # Copiar archivos
 COPY . .
 
-# Instalar dependencias de Node.js
+# Instalar dependencias del proyecto
 RUN npm install
 
-# Exponer puerto
+# Exponer el puerto del servidor
 EXPOSE 3000
 
-# Iniciar el servidor
+# Comando para arrancar la API
 CMD ["node", "api.js"]
