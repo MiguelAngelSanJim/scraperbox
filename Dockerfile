@@ -4,7 +4,8 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm install
+RUN npm install \
+  && npx playwright install --with-deps
 
 EXPOSE 3000
 
