@@ -35,6 +35,7 @@ async function obtenerPrecioMedioCochesDeMetal(query) {
         return { media: null, detalles: [], mensaje: "No se encontraron productos en CochesDeMetal." };
       }
     }
+    await page.screenshot({ path: "screenshotCochesDeMetal.png", fullPage: true });
 
     await page.waitForSelector("span.product-price font", { timeout: 10000, state: "attached" });
 

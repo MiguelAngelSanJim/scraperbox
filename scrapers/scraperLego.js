@@ -26,6 +26,7 @@ async function obtenerPrecioMedioLego(query) {
     });
 
     await page.goto(url, { waitUntil: "networkidle", timeout: 90000 });
+    await page.screenshot({ path: "screenshotLego.png", fullPage: true });
 
     const productos = await page.$$eval("li[data-test='product-leaf']", items =>
       items.map(el => {

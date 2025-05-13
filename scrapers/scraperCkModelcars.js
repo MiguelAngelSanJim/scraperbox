@@ -29,6 +29,7 @@ async function obtenerPrecioMedioCKModelcars(query) {
     });
 
     await page.goto(url, { waitUntil: "networkidle", timeout: 90000 });
+    await page.screenshot({ path: "screenshotCK.png", fullPage: true });
 
     const sinResultados = await page.$("h2.first");
     if (sinResultados) {
