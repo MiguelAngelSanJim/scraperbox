@@ -39,7 +39,7 @@ async function obtenerPrecioMedioCKModelcars(query) {
       }
     }
 
-    await page.waitForSelector("div.div_liste_punkt_preis.rabatt", { timeout: 10000 });
+    await page.waitForSelector("div.div_liste_punkt_preis.rabatt", { timeout: 20000, state: "attached" });
 
     const precios = await page.$$eval("div.div_liste_punkt_preis.rabatt", divs =>
       divs.map(div => parseFloat(div.childNodes[0].textContent.replace("€", "").replace(",", ".").trim()))

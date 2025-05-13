@@ -36,7 +36,8 @@ async function obtenerPrecioMedioCochesDeMetal(query) {
       }
     }
 
-    await page.waitForSelector("span.product-price font", { timeout: 10000 });
+    await page.waitForSelector("span.product-price font", { timeout: 10000, state: "attached" });
+
 
     const precios = await page.$$eval("span.product-price font", spans =>
       spans.map(span => parseFloat(span.textContent.replace("€", "").replace(",", ".").trim()))
