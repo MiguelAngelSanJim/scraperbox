@@ -2,12 +2,27 @@ const { chromium } = require("playwright");
 
 async function obtenerPrecioMedioCochesDeMetal(query) {
   const url = `https://cochesdemetal.es/pt/module/iqitsearch/searchiqit?s=${encodeURIComponent(query)}`;
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-blink-features=AutomationControlled']
+  });
 
   try {
-    const page = await browser.newPage();
+    const context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      locale: 'es-ES',
+      timezoneId: 'Europe/Madrid',
+      viewport: { width: 1280, height: 720 }
+    });
+
+    const page = await context.newPage();
+
     await page.setExtraHTTPHeaders({
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+      'Connection': 'keep-alive',
+      'DNT': '1',
+      'Upgrade-Insecure-Requests': '1'
     });
 
     await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
